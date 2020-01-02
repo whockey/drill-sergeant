@@ -1,8 +1,8 @@
+import Express, { response } from "express";
 import Twilio, { twiml } from "twilio";
 
 import BodyParser from "body-parser";
 import Cron from "node-cron";
-import Express from "express";
 import M from "moment";
 import Redis from "redis";
 import { promisify } from "util";
@@ -11,7 +11,10 @@ const accountSid = "AC53f46be8d6f0a6b7737777c75f102feb";
 const authToken = "69ddf27362642bace2a500254ca69590";
 
 const twilio = Twilio(accountSid, authToken);
-const redis = Redis.createClient();
+const redis = Redis.createClient({
+  host: "redis",
+  port: 6379
+});
 
 const redisGet = promisify(redis.get).bind(redis);
 const redisSet = promisify(redis.set).bind(redis);
@@ -20,6 +23,10 @@ const redisKeys = promisify(redis.keys).bind(redis);
 // ---------------- API ------------------
 const app = Express();
 app.use(BodyParser.urlencoded({ extended: true }));
+
+app.get("/", async (req, res) => {
+  res.send("ok");
+});
 
 app.post("/message", async (req, res) => {
   // Checking on the legitimacy of request
