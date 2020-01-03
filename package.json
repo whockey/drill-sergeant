@@ -10,9 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.19.0",
+    "cron": "^1.7.2",
     "express": "^4.17.1",
     "moment": "^2.24.0",
-    "node-cron": "^2.0.3",
     "redis": "^2.8.0",
     "twilio": "^3.39.1",
     "typescript": "^3.7.4"

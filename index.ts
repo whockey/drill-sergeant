@@ -153,7 +153,7 @@ const newDayCron = new CronJob(
   "America/Los_Angeles"
 );
 const messageCron = new CronJob(
-  "* * * * *",
+  "0 08 * * *",
   async () => await sendMorningMessage(),
   null,
   true,
