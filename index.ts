@@ -1,8 +1,8 @@
-import Express, { response } from "express";
 import Twilio, { twiml } from "twilio";
 
 import BodyParser from "body-parser";
-import Cron from "node-cron";
+import Cron from "cron";
+import Express from "express";
 import M from "moment";
 import Redis from "redis";
 import { promisify } from "util";
@@ -15,6 +15,8 @@ const redis = Redis.createClient({
   host: "redis",
   port: 6379
 });
+
+const CronJob = Cron.CronJob;
 
 const redisGet = promisify(redis.get).bind(redis);
 const redisSet = promisify(redis.set).bind(redis);
@@ -142,15 +144,40 @@ function formatTwilioMessage(message: object, type: string) {
 
 // ---- Recuring events ----------------------
 
-Cron.schedule("0 00 * * *", () => startNewDay);
-Cron.schedule("0 08 * * *", () => sendMorningMessage);
+console.log("Setting cron jobs");
+const newDayCron = new CronJob(
+  "0 00 * * *",
+  async () => await startNewDay(),
+  null,
+  true,
+  "America/Los_Angeles"
+);
+const messageCron = new CronJob(
+  "* * * * *",
+  async () => await sendMorningMessage(),
+  null,
+  true,
+  "America/Los_Angeles"
+);
+console.log(
+  `newDayCron... running: ${
+    newDayCron.running
+  }, next 5 times: ${newDayCron.nextDates(5).toString()}`
+);
+
+console.log(
+  `messageCron... running: ${
+    messageCron.running
+  }, next 5 times: ${messageCron.nextDates(5).toString()}`
+);
 
 async function sendMorningMessage() {
+  console.log("Starting to send morning messages");
   // Get all phone numbers
   const numbers = await redisKeys("numbers-*");
   for (let i = 0; i < numbers.length; i++) {
     const allTasks = JSON.parse(await redisGet(numbers[i]));
-    console.log(numbers[i]);
+    console.log(`About to send message to ${numbers[i]}`);
     console.log(formatTwilioMessage(allTasks, "string"));
     const response = await twilio.messages.create({
       from: "whatsapp:+14155238886",
@@ -163,7 +190,9 @@ async function sendMorningMessage() {
 
 async function startNewDay() {
   // Get all phone numbers
+  console.log("Starting a new day.");
   const numbers = await redisKeys("numbers-*");
+  console.log(`Setting numbers: ${numbers}`);
   for (let i = 0; i < numbers.length; i++) {
     // Get all tasks associated with the number
     const allTasks = JSON.parse(await redisGet(numbers[i]));
