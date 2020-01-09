@@ -2,6 +2,9 @@ version: "3"
 services:
   app:
     image: docker.pkg.github.com/whockey/drill-sergeant/drill-sergeant:latest
+    environment:
+      TWILIO_ACCOUNT_SID: $TWILIO_ACCOUNT_SID
+      TWILIO_ACCOUNT_TOKEN: $TWILIO_ACCOUNT_TOKEN
     ports:
       - 8081:8080
     depends_on:
